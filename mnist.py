@@ -15,41 +15,25 @@ tf.set_random_seed(0)
 # Download images and labels into mnist.test (10K images+labels) and mnist.train (60K images+labels)
 mnist = mnist_data.read_data_sets('MNIST_data', one_hot=True)
 
-
-# In[2]:
-
-
 # Visualize the original data
 index = 1
 print(mnist.train.images.shape)
 print(mnist.train.labels.shape)
 
 plt.imshow(mnist.train.images[index, :].reshape(28, 28))
-plt.show()
+# plt.show()
 print ("y = " + str(mnist.train.labels[index, :]))
-
-
-# In[3]:
-
 
 input_dimension = 784
 output_dimension = 10
 
-
-# In[4]:
-
-
-def build_network(x):
+def build_network(x, l1_units, l2_units, l3_units):
     """Build the MNIST model with 2 hidden layers and one linear layer.
     params: 
         x: input placeholder
     Returns: 
         Output tensor with the computed logits
     """
-    # define number of neurons per layer
-    l1_units = 30
-    l2_units = 15
-    l3_units = 10
     
     # Hidden 1
     with tf.variable_scope("layer2"):
@@ -74,10 +58,6 @@ def build_network(x):
   
     return z3, y_ # logits and probilities
 
-
-# In[5]:
-
-
 def calc_loss(z3, y):
     """Calculates the loss from the logits and the labels.
     params:
@@ -88,10 +68,6 @@ def calc_loss(z3, y):
     cross_entropy = tf.reduce_mean(cross_entropy)
     return cross_entropy
 
-
-# In[6]:
-
-
 def training(loss, learning_rate):
     """Sets up the training Ops.
     params:
@@ -101,14 +77,12 @@ def training(loss, learning_rate):
     beta1=0.9
     beta2=0.999
     epsilon=1e-08
+
+    # learning_rate = tf.placeholder(tf.float32, shape=[])
     
     optimizer = tf.train.AdamOptimizer(learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon)
     train_op = optimizer.minimize(loss)
     return train_op
-
-
-# In[7]:
-
 
 def evaluation(y, y_):
     """Evaluate the quality of the logits at predicting the label.
@@ -119,22 +93,6 @@ def evaluation(y, y_):
     correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return accuracy
-
-
-# In[8]:
-
-
-# Defining placeholders and compile tensors
-
-x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
-y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-z3, y_ = build_network(x)
-loss = calc_loss(z3, y)
-accuracy = evaluation(y, y_)
-
-
-# In[9]:
-
 
 # Preparing for mini-batching training data
 def generate_shuffled_train_data():
@@ -147,9 +105,6 @@ def generate_shuffled_train_data():
     shuffled_train_images = mnist.train.images[p]
     shuffled_train_labels = mnist.train.labels[p]
     return shuffled_train_images, shuffled_train_labels
-
-
-# In[ ]:
 
 
 def generate_mini_batches(batch_size, train_images, train_labels):
@@ -169,63 +124,77 @@ def generate_mini_batches(batch_size, train_images, train_labels):
         end_slice_index = (i + 1) * batch_size
         yield (train_images[start_slice_index:end_slice_index],
                train_labels[start_slice_index:end_slice_index])
-    
-
-
-# In[ ]:
-
 
 # Train MNIST classifer and evaluate the accuracy
 with tf.Session() as sess:
-    print("Original accuracy:")
-    sess.run(tf.global_variables_initializer())
-    print(sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels}))
-    
+
     # Grid search for hyperparameters
-    batch_size_options = [300, 900, 3000, 9000]
+    batch_size_options = [100, 300, 1000, 3000] #  is the optimal batch size after hyperparameter tuning
     learning_rate_options = [0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03, 0.1]
+    l_options = [10, 25, 50, 100]
+
     optimal_batch_size = batch_size_options[0]
     optimal_learning_rate = learning_rate_options[0]
+    optimal_l1 = l_options[0]
+    optimal_l2 = l_options[0]
+    optimal_l3 = l_options[0]
+    optimal_epoch_number = 1
+
     max_validation_accuracy = 0
+    optimal_train_accuracy = 0
     
     for batch_size in batch_size_options:
         for learning_rate in learning_rate_options:
-            for epoch in range(10):
-                shuffled_train_images, shuffled_train_labels = generate_shuffled_train_data()
-                for (batch_train_images, batch_train_labels) in                     generate_mini_batches(batch_size, shuffled_train_images, shuffled_train_labels):
-                        train_op = training(loss, learning_rate=learning_rate)
+            for l1 in l_options:
+                for l2 in l_options:
+                    for l3 in l_options:
+                        # Building the graph
+                        x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
+                        y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
+         
+                        z3, y_ = build_network(x, l1, l2, l3)
+                        loss = calc_loss(z3, y)
+                        accuracy = evaluation(y, y_)
+                        train_op = training(loss, learning_rate)
                         sess.run(tf.global_variables_initializer())
-                        sess.run(train_op, feed_dict={x: batch_train_images, y: batch_train_labels})
-                print(str(epoch) + "th epoch of running batch size:" + str(batch_size) + " and learning rate:" + str(learning_rate))
-    
-                train_accuracy = sess.run(accuracy, feed_dict={x: mnist.train.images, y: mnist.train.labels})
-                print("Training accuracy is:" + str(train_accuracy))
-            validation_accuracy = sess.run(accuracy, feed_dict={x: mnist.validation.images, y: mnist.validation.labels})
-            print("Finishing 100 epochs of running batch size:" + str(batch_size) + " and learning rate:" + str(learning_rate))
-            print("Validation_accuracy is:" + validation_accuracy)
-            if (validation_accuracy > max_validation_accuracy):
-                optimal_batch_size = batch_size
-                optimal_learning_rate = learning_rate                                        
-            
-    print("After train accuracy:")
-    print(sess.run(accuracy, feed_dict={x: mnist.train.images, y: mnist.train.labels}))
-    print("After validation accuracy:")
-    print(sess.run(accuracy, feed_dict={x: mnist.validation.images, y: mnist.validation.labels}))
-    print("After test accuracy:")
-    print(sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels}))
-    print("Optimal batch size is:" + str(optimal_batch_size))
+                        feed_dict = {x: mnist.train.images, y: mnist.train.labels}
+                        # Training the classifier with 10 epochs with shuffled training data in mini batches
+                        for epoch in range(30): # This is the optimal number of epochs after tuning
+                            shuffled_train_images, shuffled_train_labels = generate_shuffled_train_data()
+                            for (batch_train_images, batch_train_labels) in\
+                                generate_mini_batches(batch_size, shuffled_train_images, shuffled_train_labels):
+                                    sess.run(train_op, feed_dict=feed_dict) 
+                                    train_accuracy = sess.run(accuracy, feed_dict=feed_dict)
+                                    validation_accuracy = sess.run(accuracy, feed_dict=feed_dict)      
+                                   
+                                    print(str(epoch) + "th epoch, batch size: " + str(batch_size) + ", learning rate=" + str(learning_rate)\
+                                        + ",l1=" + str(l1) +  ",l2=" + str(l2) + ",l3=" + str(l3))
+                                    print("Training accuracy:" + str(train_accuracy) + "Validation_accuracy:" + str(validation_accuracy))
+
+                                     # Update the optimal hyperparameters if the validation accuracy is higher than the old maximum validation accuracy
+                                    if (validation_accuracy > max_validation_accuracy):
+                                        optimal_batch_size = batch_size    
+                                        optimal_learning_rate = learning_rate
+                                        optimal_l1 = l1
+                                        optimal_l2 = l2
+                                        optimal_l3 = l3
+                                        optimal_epoch_number = epoch
+                                        max_validation_accuracy = validation_accuracy
+                                        optimal_train_accuracy = train_accuracy
+                
+        # print("After train accuracy:")
+    # print(sess.run(accuracy, feed_dict={x: mnist.train.images, y: mnist.train.labels}))
+    # print("After validation accuracy:")
+    # print(sess.run(accuracy, feed_dict={x: mnist.validation.images, y: mnist.validation.labels}))
+    # print("After test accuracy:")
+    # print(sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels}))
     print("Optimal learning rate is:" + str(optimal_learning_rate))
+    print("Optimal batch size is:" + str(optimal_batch_size))
+    print("Optimal number of neurons for layer 1 is:" + str(optimal_l1))
+    print("Optimal number of neurons for layer 2 is:" + str(optimal_l2))
+    print("Optimal number of neurons for layer 3 is:" + str(optimal_l3))
+    print("Optimal epoch number is:" + str(optimal_epoch_number))
+    print("Best validation accuracy:" + str(max_validation_accuracy))
+    print("Optimal train accuracy:" + str(optimal_train_accuracy))
     
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
 

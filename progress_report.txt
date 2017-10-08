@@ -1,0 +1,17 @@
+This document records the progress of the adversarial DNN project.
+The document is intended for me and colleagues to have a reference of things I have tried throughout the project.
+
+10.7.2017
+
+- built basic mnist classifier with 2 hidden layers and one softmax layer
+- Tuned parameters:
+    - learning rate
+    - hidden unit numbers
+    - mini-batch size
+    - number of epochs
+- Not tuned parameters:
+    For Adam Optimizer:
+        beta1=0.9
+        beta2=0.999
+        epsilon=1e-08
+- Running parameter tuning overnight, will record optimal hyperparameters tomorrow and results tomorrow.
