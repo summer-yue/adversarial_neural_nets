@@ -11,7 +11,7 @@ The questions we ask include, but not limited to:
 5. What kind of activation functions would resist attacks better?
 6. Would training on more examples lead to better resistance to attacks?
 
-## Step 1: Set up a baseline classifier
+## Step 1: Set up a baseline classifier (DONE)
 
 Develop a simple 3 layer vanilla classifier for the mnist data set
 
@@ -20,7 +20,7 @@ Develop a simple 3 layer vanilla classifier for the mnist data set
 Develop a fast gradient sign attack algorithm that preprocesses images from test data, with the goal of causing the classifier to misclassify
 
 ## Step 3: Figure out a robustness measurement
-Look into a better measurement for a classifier's robustness, a simple one would be the distortion needed to be applied to each pixel in the fast gradient sign method that would lead to a below 50% test accuracy.
+Look into a better measurement for a classifier's robustness, a simple one would be the distortion needed to be applied to each pixel in the fast gradient sign method that would lead to a decrease test accuracy. This can be represented in a line graph, where the x axis is distortion and y axis is test accuracy.
 
 ## Step 4: Analyze what happens to robustness when the architecture of the DNN changes.
 1. Adding layers into the original classifier
@@ -32,8 +32,9 @@ Look into a better measurement for a classifier's robustness, a simple one would
 We want to observe how robustness measurements and accuracy would change under these scenarios.
 
 ## Step 5: Develop a theory on what are the causes on why DNNs susceptible to adversarial examples:
-TODO: Current existng hypothesis
+EXPLAINING AND HARNESSING ADVERSARIAL EXAMPLES by Goodfellow's group argued that the existance of adversarial examples is due to the linear properties of the neural net. That is shown by adversarial examples on relatively linear networks with high dimensional inputs.
 
+I suspect in addition to the input dimensions, larger weights on each layer, number of neurons on each layer and an increase in the number of layers would lead to higher distortions of output, therefore making the network less resistant to adversarial attacks. Regularization may enable the neural net to be more robust to attacks.
 
 ## Authors
 * **Summer Yue** 
