@@ -26,3 +26,7 @@ The document is intended for me and colleagues to have a reference of things I h
     Best validation accuracy:0.9858
     Optimal train accuracy:0.99
     Test accuracy is:0.9795
+
+10.11.2017
+- Be able to save and restored trained mnist model
+- Develope a basic FGSM attacker on the mnist classifier and demonstrate what a perturbed image looks like and show that the mnist classifier misclassifies on a test image

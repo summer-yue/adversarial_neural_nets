@@ -256,5 +256,5 @@ def calculate_test_accuracy():
     test_accuracy = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
     print("Test accuracy is:" + str(test_accuracy))
 
-create_mnist_model()
-calculate_test_accuracy()
+# create_mnist_model()
+# calculate_test_accuracy()
