@@ -30,3 +30,4 @@ The document is intended for me and colleagues to have a reference of things I h
 10.11.2017
 - Be able to save and restored trained mnist model
 - Develope a basic FGSM attacker on the mnist classifier and demonstrate what a perturbed image looks like and show that the mnist classifier misclassifies on a test image
+- Draw the line graph illustrating how changes in epsilon may lead to drastic decrease in the algorithm's performace on the test set.
