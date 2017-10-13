@@ -15,7 +15,7 @@ The questions we ask include, but not limited to:
 
 Develop a simple 3 layer vanilla classifier for the mnist data set
 
-## Step 2: Develop the fast gradient sign attack algorithm
+## Step 2: Develop the fast gradient sign attack algorithm (DONE)
 
 Develop a fast gradient sign attack algorithm that preprocesses images from test data, with the goal of causing the classifier to misclassify
 
@@ -23,9 +23,9 @@ Develop a fast gradient sign attack algorithm that preprocesses images from test
 Look into a better measurement for a classifier's robustness, a simple one would be the distortion needed to be applied to each pixel in the fast gradient sign method that would lead to a decrease test accuracy. This can be represented in a line graph, where the x axis is distortion and y axis is test accuracy.
 
 ## Step 4: Analyze what happens to robustness when the architecture of the DNN changes.
-1. Adding layers into the original classifier
+1. Using different regularization techniques
 2. Increasing the number neurons to each layer
-3. Using different regularization techniques
+3. Adding layers into the original classifier
 4. Use dimensionality reduction on inputs before training and testing
 5. Using linear vs nonlinear activation functions
 
