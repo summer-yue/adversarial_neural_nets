@@ -10,7 +10,7 @@ from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 
 tf.set_random_seed(0)
 
-# Download images and labels into mnist.test (10K images+labels) and mnist.train (60K images+labels)
+# Download images and labels into mnist.test (10K images+labels) and mnist.train (60K images+l/Users/summer/Documents/Research/adversarial_neural_nets/mnist.pyabels)
 mnist = mnist_data.read_data_sets('MNIST_data', one_hot=True)
 input_dimension = 784
 output_dimension = 10

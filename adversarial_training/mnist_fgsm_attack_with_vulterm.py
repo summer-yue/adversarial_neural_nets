@@ -1,7 +1,10 @@
+# Attacking model with new loss function with vulnerability term from vulnerability_score_defense_mnist.py
+# This technique is mentioned in Goodfellow's Harnessing paper as a form of adversarial training.
+
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from mnist import build_network, calc_loss, evaluation
+from vulnerability_score_defense_mnist import build_network, calc_loss, evaluation, calc_loss_with_vulnerability
 from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 
 # Importing MNIST datasets
@@ -29,7 +32,7 @@ def fgsm_attack(image, label):
     z3, y_ = build_network(x, l1, l2, l3)
     loss = calc_loss(z3, y)
 
-    epsilon = 0.25
+    epsilon = 0.1
 
     pertubation = tf.sign(tf.gradients(loss, x))
 
@@ -40,7 +43,7 @@ def fgsm_attack(image, label):
     sess.run(tf.global_variables_initializer())
 
     saver = tf.train.Saver()
-    saver.restore(sess, "./tmp/original_mnist_model-8")
+    saver.restore(sess, "./tmp/vulnerability_score_mnist_model-8")
 
     perturbed_image = sess.run(perturbed_op, feed_dict={x: [image], y:[label]})
     return perturbed_image
@@ -65,7 +68,7 @@ def accuracy_after_fgsm_attack(images, labels, epsilon):
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
-    saver.restore(sess, "./tmp/original_mnist_model-8")
+    saver.restore(sess, "./tmp/vulnerability_score_mnist_model-8")
 
     perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
     perturbed_accuracy = sess.run(accuracy, feed_dict={x: perturbed_images, y: labels})
@@ -86,10 +89,69 @@ def predict_mnist_num(image):
     sess.run(tf.global_variables_initializer())
 
     saver = tf.train.Saver()
-    saver.restore(sess, "./tmp/original_mnist_model-8")
+    saver.restore(sess, "./tmp/vulnerability_score_mnist_model-8")
 
     prediction = sess.run(y_, feed_dict={x: [image]})
     return prediction
+
+def fgsm_attack_on_new_loss(image, label):
+    """ Perform fast gradient sign method attack on an (image, label) pair with information about the new loss function
+    with the vulnerability loss term.
+    params: image, label pair
+    return: perturbed_image
+    """
+    tf.reset_default_graph()
+
+    # Building the graph
+    x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
+    y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
+    z3, y_ = build_network(x, l1, l2, l3)
+    loss = calc_loss(z3, y)
+    loss_with_vulnerability = calc_loss_with_vulnerability(loss, x, y)
+
+    epsilon = 0.1
+
+    pertubation = tf.sign(tf.gradients(loss_with_vulnerability, x))
+
+    #apply pertubation to images
+    perturbed_op = tf.squeeze(epsilon * pertubation) + image
+
+    sess=tf.Session()   
+    sess.run(tf.global_variables_initializer())
+
+    saver = tf.train.Saver()
+    saver.restore(sess, "./tmp/vulnerability_score_mnist_model-8")
+
+    perturbed_image = sess.run(perturbed_op, feed_dict={x: [image], y:[label]})
+    return perturbed_image
+
+def accuracy_after_fgsm_attack_on_new_loss(images, labels, epsilon):
+    """ Perform fast gradient sign method attack on the new loss function with vulnerability term
+    return: new accuracy after perturbation
+    """
+    tf.reset_default_graph()
+
+    # Building the graph
+    x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
+    y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
+    z3, y_ = build_network(x, l1, l2, l3)
+    loss = calc_loss(z3, y)
+    loss_with_vulnerability = calc_loss_with_vulnerability(loss, x, y)
+    
+    accuracy = evaluation(y, y_)
+
+    #apply pertubation to images
+    pertubation = tf.sign(tf.gradients(loss_with_vulnerability, x))
+    perturbed_op = tf.squeeze(epsilon * pertubation) + images
+
+    sess=tf.Session()   
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver()
+    saver.restore(sess, "./tmp/vulnerability_score_mnist_model-8")
+
+    perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
+    perturbed_accuracy = sess.run(accuracy, feed_dict={x: perturbed_images, y: labels})
+    return perturbed_accuracy
 
 def demonstrate_attack_result():
     """ Demonstrate the FGSM attack result by showing
@@ -112,6 +174,26 @@ def demonstrate_attack_result():
     perturbed_prediction = np.argmax(predict_mnist_num(perturbed_image), axis=1)
     print("The perturbed picture's prediction says:" + str(perturbed_prediction))
 
+def demonstrate_attack_error_rate_on_new_loss():
+    """ Demonstrate the FGSM attack result by showing
+    How the value of epsilon changes the error rate on the test set
+    The attack is formed based on the new loss function with vulnerability term
+    """
+    sample_images = mnist.test.images
+    sample_labels = mnist.test.labels
+
+    epsilons = []
+    perturbed_accuracies = []
+    for epsilon in [x * 0.01 for x in range(0, 30)]:
+        epsilons.append(epsilon)
+        perturbed_accuracy = accuracy_after_fgsm_attack_on_new_loss(sample_images, sample_labels, epsilon)
+        perturbed_accuracies.append(perturbed_accuracy)
+    plt.plot(epsilons, perturbed_accuracies)
+    plt.title('FGSM Attack on New Loss Function on Network with Adversarial Training')
+    plt.xlabel('Epsilon')
+    plt.ylabel('Accuracy')
+    plt.show()  
+
 def demonstrate_attack_error_rate():
     """ Demonstrate the FGSM attack result by showing
     How the value of epsilon changes the error rate on the test set
@@ -126,8 +208,11 @@ def demonstrate_attack_error_rate():
         perturbed_accuracy = accuracy_after_fgsm_attack(sample_images, sample_labels, epsilon)
         perturbed_accuracies.append(perturbed_accuracy)
     plt.plot(epsilons, perturbed_accuracies)
-    plt.title('FGSM Attack: Epsilon VS Prediction Accuracy')
+    plt.title('FGSM Attack on Network with Adversarial Training')
+    plt.xlabel('Epsilon')
+    plt.ylabel('Accuracy')
     plt.show()
 
 # demonstrate_attack_result()
-demonstrate_attack_error_rate()
+# demonstrate_attack_error_rate()
+demonstrate_attack_error_rate_on_new_loss()

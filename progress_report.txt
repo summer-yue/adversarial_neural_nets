@@ -31,3 +31,14 @@ The document is intended for me and colleagues to have a reference of things I h
 - Be able to save and restored trained mnist model
 - Develope a basic FGSM attacker on the mnist classifier and demonstrate what a perturbed image looks like and show that the mnist classifier misclassifies on a test image
 - Draw the line graph illustrating how changes in epsilon may lead to drastic decrease in the algorithm's performace on the test set.
+
+10.20
+- Reproduced GoodFellow's claim in his EXPLAINING AND HARNESSING ADVERSARIAL EXAMPLES paper
+"We found that training with an adversarial objective function based on the fast gradient sign method
+was an effective regularizer:
+J˜(θ, x, y) = αJ(θ, x, y) + (1 − α)J(θ, x + epsilon*sign (∇xJ(θ, x, y))""
+- vulnerability_score_defense_mnist.py (Classifier trained with adversarial training)
+New accuracy with old hyperparameters used in the original mnist becomes: 0.9859
+- mnist_fgsm_attack_with_vulterm.py (Attacking the classifier above)
+
+We drew the accuracy vs epsilon curve for the new effect of FGSM and show that the new classifier with adversarrial training is a lot more resistant to this attack. The curve is shown in fgsm_adversarial_training_updated_loss_attack_new_loss and fgsm_adversarial_training_updated_loss_attack_original_loss. The diference is when the FGSM is trained with the original loss function versus the new loss function with the vulnerability term.
