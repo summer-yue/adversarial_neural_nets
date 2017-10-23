@@ -79,4 +79,7 @@ Test accuracy is:0.9848
 Results in results/structures_vs_robustness of epoch_number vs accuracy seems counterintuitive.
 If overfitting makes adversarial examples more likely,
 increase in epoch number should cause the accuracy after a fixed attack to go down, as it's overfitted. 
-The opposite result is observed.
+The opposite result is observed. The same happens when we increase the neuron numbers.
+
+Then we applied l2 regularization, and then noticed that it becomes more resistant to attacks. 
+This is indeed expected.
