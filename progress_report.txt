@@ -42,3 +42,41 @@ New accuracy with old hyperparameters used in the original mnist becomes: 0.9859
 - mnist_fgsm_attack_with_vulterm.py (Attacking the classifier above)
 
 We drew the accuracy vs epsilon curve for the new effect of FGSM and show that the new classifier with adversarrial training is a lot more resistant to this attack. The curve is shown in fgsm_adversarial_training_updated_loss_attack_new_loss and fgsm_adversarial_training_updated_loss_attack_original_loss. The diference is when the FGSM is trained with the original loss function versus the new loss function with the vulnerability term.
+
+10.23
+Run different epochs and observe the error rate
+For epoch:5
+Train accuracy is:0.989545
+Test accuracy is:0.9764
+For epoch:6
+Train accuracy is:0.994745
+Test accuracy is:0.9765
+For epoch:7
+Train accuracy is:0.997727
+Test accuracy is:0.9798
+For epoch:8
+Train accuracy is:0.996727
+Test accuracy is:0.9774
+For epoch:9
+Train accuracy is:0.998364
+Test accuracy is:0.9792
+For epoch:10
+Train accuracy is:0.999891
+Test accuracy is:0.9844
+For epoch:11
+Train accuracy is:0.999473
+Test accuracy is:0.982
+For epoch:12
+Train accuracy is:0.999036
+Test accuracy is:0.9827
+For epoch:13
+Train accuracy is:0.999709
+Test accuracy is:0.9829
+For epoch:14
+Train accuracy is:1.0
+Test accuracy is:0.9848
+
+Results in results/structures_vs_robustness of epoch_number vs accuracy seems counterintuitive.
+If overfitting makes adversarial examples more likely,
+increase in epoch number should cause the accuracy after a fixed attack to go down, as it's overfitted. 
+The opposite result is observed.
