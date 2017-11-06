@@ -19,17 +19,17 @@ Develop a simple 3 layer vanilla classifier for the mnist data set
 
 Develop a fast gradient sign attack algorithm that preprocesses images from test data, with the goal of causing the classifier to misclassify
 
-## Step 3: Figure out a robustness measurement
-Look into a better measurement for a classifier's robustness, a simple one would be the distortion needed to be applied to each pixel in the fast gradient sign method that would lead to a decrease test accuracy. This can be represented in a line graph, where the x axis is distortion and y axis is test accuracy.
+## Step 3: Figure out a robustness measurement (DONE)
+We will be looking at the accuracy for perturbed examples vs epsilon used in the FGSM attack to analyze the robustness of the neural network.
 
 ## Step 4: Analyze what happens to robustness when the architecture of the DNN changes.
-1. Using different regularization techniques
-2. Increasing the number neurons to each layer
+1. Using different regularization techniques - the neural net becomes MORE resistant to adversarial attacks
+2. Increasing the number neurons to each layer - the neural net becomes MORE resistant to adversarial attacks
 3. Adding layers into the original classifier
-4. Use dimensionality reduction on inputs before training and testing
+4. Increase the epoch number used in training to overfit the classifier - the neural net becomes MORE resistant to adversarial attacks
 5. Using linear vs nonlinear activation functions
 
-We want to observe how robustness measurements and accuracy would change under these scenarios.
+We observed interesting behaviors in this step. By overfitting the classifier with increasing number of neurons per layer and increasing number of epochs, we noticed that the neural net became more resistance to adversarial examples. This was counterintuitive and indicated that adversarial examples are not caused by the traditional sense of overfitting. On the other hand, L2 regularization, which decreases the effect of overfitting, also helps the network become more resistant.
 
 ## Step 5: Develop a theory on what are the causes on why DNNs susceptible to adversarial examples:
 EXPLAINING AND HARNESSING ADVERSARIAL EXAMPLES by Goodfellow's group argued that the existance of adversarial examples is due to the linear properties of the neural net. That is shown by adversarial examples on relatively linear networks with high dimensional inputs.
