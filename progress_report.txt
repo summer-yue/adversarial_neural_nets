@@ -83,3 +83,12 @@ The opposite result is observed. The same happens when we increase the neuron nu
 
 Then we applied l2 regularization, and then noticed that it becomes more resistant to attacks. 
 This is indeed expected.
+
+11.5
+As observed earlier that overfitting does not cause the neural net to be prone to adversarial examples.
+On the other hand, overfitting enables the neural net to become more resistant.
+However, regularization helps make the model becoming more resistant.
+
+I reread the explaination for Goodfellow's hypothesis on the "linearity" of the neural net causes it to be less resistant. They pointed out that the aggregation from the dimensions of the input and the neural nets' linear functions cause the adversarial examples to be present.
+If this were the case, we should observe that the weights of the neural net become smaller as the number of epochs keep training. We observed from epoch_num_vs_weight that weight does go down as epoch number used in training goes up.
+

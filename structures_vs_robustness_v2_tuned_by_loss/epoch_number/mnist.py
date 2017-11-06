@@ -143,13 +143,12 @@ def create_mnist_model(epoch_num_start, epoch_num_end):
     loss = calc_loss(z3, y)
     accuracy = evaluation(y, y_)
     train_op = training(loss, learning_rate)
-    saver = tf.train.Saver(max_to_keep=10)
+    saver = tf.train.Saver(max_to_keep=50)
     # Train MNIST classifer and evaluate the accuracy
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-
         # mini-batch training 
         for epoch_num in range(epoch_num_start, epoch_num_end):
+            sess.run(tf.global_variables_initializer())
             for epoch in range(epoch_num):
                 shuffled_train_images, shuffled_train_labels = generate_shuffled_train_data()
                 for (batch_train_images, batch_train_labels) in\
@@ -189,5 +188,42 @@ def calculate_test_accuracy(epoch_num_start, epoch_num_end):
         test_accuracy = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
         print("Test accuracy is:" + str(test_accuracy))
 
-# create_mnist_model(44, 51)
+def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end):
+    """Demonstrate the change in validation loss and train loss as more epochs are trained
+    """
+    # Building the graph
+    x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
+    y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
+    z3, y_ = build_network(x, l1, l2, l3)
+    loss = calc_loss(z3, y)
+
+    epoch_nums = []
+    valid_losses = []
+    train_losses = []
+
+    for epoch_num in range(epoch_num_start, epoch_num_end):
+
+        sess=tf.Session()   
+        sess.run(tf.global_variables_initializer())
+        saver = tf.train.Saver(max_to_keep=50)
+        saver.restore(sess, "./tmp/mnist_model_epochs-" + str(epoch_num))
+
+        train_loss = sess.run(loss, feed_dict={x: mnist.train.images, y:mnist.train.labels})
+        valid_loss = sess.run(loss, feed_dict={x: mnist.validation.images, y:mnist.validation.labels})
+
+        epoch_nums.append(epoch_num)
+        train_losses.append(train_loss)
+        valid_losses.append(valid_loss)
+        print("Epoch num: {0}, train_loss: {1}, validation_loss: {2}".format(epoch_num, train_loss, valid_loss))
+
+    plt.plot(epoch_nums, train_losses)
+    plt.plot(epoch_nums, valid_losses)
+    plt.title('Losses as the neural net is trained with more epochs')
+    plt.legend(['Train Loss', 'Validation Loss'], loc='upper left')
+    plt.xlabel('Epoch Number')
+    plt.ylabel('Loss')
+    plt.show()
+
+#demonstrate_valid_train_loss(5, 52)
+#create_mnist_model(44, 51)
 #calculate_test_accuracy(28, 33)
