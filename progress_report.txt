@@ -92,3 +92,6 @@ However, regularization helps make the model becoming more resistant.
 I reread the explaination for Goodfellow's hypothesis on the "linearity" of the neural net causes it to be less resistant. They pointed out that the aggregation from the dimensions of the input and the neural nets' linear functions cause the adversarial examples to be present.
 If this were the case, we should observe that the weights of the neural net become smaller as the number of epochs keep training. We observed from epoch_num_vs_weight that weight does go down as epoch number used in training goes up.
 
+11.6
+Reproduced the behavior: overfitting -> better accuracy by increasing neuron numbers.
+Work is included in strucutures_vs_robustness_v2_tuned_by_loss

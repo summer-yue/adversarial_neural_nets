@@ -1,0 +1,4 @@
+__pycache__/
+MNIST_data/
+tmp/
+.DS_Store
