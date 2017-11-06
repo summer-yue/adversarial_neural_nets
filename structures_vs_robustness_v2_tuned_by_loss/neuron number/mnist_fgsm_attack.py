@@ -51,7 +51,7 @@ def demonstrate_attack_error_rate(neuron_num_start, neuron_num_end, jump_num):
         # Building the graph
         x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
         y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-        z3, y_ = build_network(x, neuron_num, neuron_num, l3)
+        z3, y_, _ = build_network(x, neuron_num, neuron_num, l3)
         loss = calc_loss(z3, y)
         accuracy = evaluation(y, y_)
 

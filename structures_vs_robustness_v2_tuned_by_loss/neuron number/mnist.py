@@ -50,7 +50,15 @@ def build_network(x, l1_units, l2_units, l3_units):
         z3 = tf.matmul(y2, w3) + b3
         y_ = tf.nn.softmax(z3)
   
-    return z3, y_ # logits and probilities
+    params = {}
+    params["w1"] = w1
+    params["w2"] = w2
+    params["w3"] = w3
+    params["b1"] = b1
+    params["b2"] = b2
+    params["b3"] = b3
+
+    return z3, y_, params # logits and probilities
 
 def calc_loss(z3, y):
     """Calculates the loss from the logits and the labels.
@@ -132,7 +140,7 @@ def create_mnist_model(neuron_num_start, neuron_num_end, jump_num):
             l3 = 10
             x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
             y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-            z3, y_ = build_network(x, l1, l2, l3)
+            z3, y_, nn_params = build_network(x, l1, l2, l3)
             loss = calc_loss(z3, y)
             accuracy = evaluation(y, y_)
             train_op = training(loss, learning_rate)
@@ -159,12 +167,11 @@ def calculate_test_accuracy(neuron_num_start, neuron_num_end, jump_num):
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
 
- 
     for neuron_num in range(neuron_num_start, neuron_num_end, jump_num):
         # Building the graph
         x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
         y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-        z3, y_ = build_network(x, neuron_num, neuron_num, l3)
+        z3, y_, nn_params = build_network(x, neuron_num, neuron_num, l3)
         loss = calc_loss(z3, y)
         accuracy = evaluation(y, y_)
         train_op = training(loss, learning_rate)
@@ -183,7 +190,6 @@ def calculate_test_accuracy(neuron_num_start, neuron_num_end, jump_num):
 def demonstrate_valid_train_loss(neuron_num_start, neuron_num_end, jump_num):
     """Demonstrate the change in validation loss and train loss as more epochs are trained
     """
-
     neuron_nums = []
     valid_losses = []
     train_losses = []
@@ -193,7 +199,7 @@ def demonstrate_valid_train_loss(neuron_num_start, neuron_num_end, jump_num):
         # Building the graph
         x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
         y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-        z3, y_ = build_network(x,neuron_num, neuron_num, l3)
+        z3, y_, _ = build_network(x,neuron_num, neuron_num, l3)
         loss = calc_loss(z3, y)
 
         sess=tf.Session()   
@@ -218,6 +224,48 @@ def demonstrate_valid_train_loss(neuron_num_start, neuron_num_end, jump_num):
     plt.ylabel('Loss')
     plt.show()
 
+def get_average_weights_from_neuron_num(neuron_num, params):
+    sess=tf.Session()   
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver(max_to_keep=100)
+    saver.restore(sess, "./tmp/mnist_model_neurons-" + str(neuron_num))
+    params_nn = sess.run(params, feed_dict={})
+    w1 = params_nn["w1"]
+    w2 = params_nn["w2"]
+    w3 = params_nn["w3"]
+    # print(np.mean(w1))
+    # print(np.mean(w2))
+    # print(np.mean(w3))
+    return np.mean(w1) * np.mean(w2) * np.mean(w3)
+
+def demonstrate_neuron_number_vs_weights(neuron_num_start, neuron_num_end, jump_num):
+    """ Demonstrate the neural net's average weights vs epoch number
+    """
+    sample_images = mnist.test.images
+    sample_labels = mnist.test.labels
+
+    neuron_nums = []
+    weights_average = []
+    for neuron_num in range(neuron_num_start, neuron_num_end, jump_num):
+
+        # Building the graph
+        x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
+        y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
+        z3, y_, params_nn = build_network(x,neuron_num, neuron_num, l3)
+        loss = calc_loss(z3, y)
+
+        neuron_nums.append(neuron_num)
+        weights_for_neuron_num = get_average_weights_from_neuron_num(neuron_num, params_nn)
+        weights_average.append(weights_for_neuron_num)
+
+        print("Neuron num: {0}, Weights on average for neuron number: {1}".format(neuron_num, weights_for_neuron_num))
+    plt.plot(neuron_nums, weights_average)
+    plt.title('MNIST Classifier Weights VS Neuron Numbers')
+    plt.xlabel('Neuron Number')
+    plt.ylabel('Average Weights')
+    plt.show()
+
 #create_mnist_model(50, 550, 50)
 #demonstrate_valid_train_loss(50, 500, 50)
 #calculate_test_accuracy(50, 500, 50)
+#demonstrate_neuron_number_vs_weights(50, 500, 50)
