@@ -224,22 +224,20 @@ def demonstrate_valid_train_loss(neuron_num_start, neuron_num_end, jump_num):
     plt.ylabel('Loss')
     plt.show()
 
-def get_average_weights_from_neuron_num(neuron_num, params):
+def get_average_weights_from_neuron_num(neuron_num, params, layer_num):
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver(max_to_keep=100)
     saver.restore(sess, "./tmp/mnist_model_neurons-" + str(neuron_num))
     params_nn = sess.run(params, feed_dict={})
-    w1 = params_nn["w1"]
-    w2 = params_nn["w2"]
-    w3 = params_nn["w3"]
-    # print(np.mean(w1))
-    # print(np.mean(w2))
-    # print(np.mean(w3))
-    return np.mean(w1) * np.mean(w2) * np.mean(w3)
 
-def demonstrate_neuron_number_vs_weights(neuron_num_start, neuron_num_end, jump_num):
+    #Return the spectral norm for one of the weight matrices
+    return params_nn["w"+str(layer_num)].max()
+
+def demonstrate_neuron_number_vs_weights(neuron_num_start, neuron_num_end, jump_num, layer_num):
     """ Demonstrate the neural net's average weights vs epoch number
+    Args:
+        layer_num: the layer we want to show analysis for
     """
     sample_images = mnist.test.images
     sample_labels = mnist.test.labels
@@ -255,7 +253,7 @@ def demonstrate_neuron_number_vs_weights(neuron_num_start, neuron_num_end, jump_
         loss = calc_loss(z3, y)
 
         neuron_nums.append(neuron_num)
-        weights_for_neuron_num = get_average_weights_from_neuron_num(neuron_num, params_nn)
+        weights_for_neuron_num = get_average_weights_from_neuron_num(neuron_num, params_nn, layer_num)
         weights_average.append(weights_for_neuron_num)
 
         print("Neuron num: {0}, Weights on average for neuron number: {1}".format(neuron_num, weights_for_neuron_num))
@@ -268,4 +266,4 @@ def demonstrate_neuron_number_vs_weights(neuron_num_start, neuron_num_end, jump_
 #create_mnist_model(50, 550, 50)
 #demonstrate_valid_train_loss(50, 500, 50)
 #calculate_test_accuracy(50, 500, 50)
-#demonstrate_neuron_number_vs_weights(50, 500, 50)
+demonstrate_neuron_number_vs_weights(50, 500, 50, 1)
