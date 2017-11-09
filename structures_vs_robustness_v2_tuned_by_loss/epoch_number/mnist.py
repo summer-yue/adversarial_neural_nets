@@ -66,7 +66,15 @@ def build_network(x, l1_units, l2_units, l3_units):
         z3 = tf.matmul(y2, w3) + b3
         y_ = tf.nn.softmax(z3)
   
-    return z3, y_ # logits and probilities
+    params = {}
+    params["w1"] = w1
+    params["w2"] = w2
+    params["w3"] = w3
+    params["b1"] = b1
+    params["b2"] = b2
+    params["b3"] = b3
+
+    return z3, y_, params # logits and probilities
 
 def calc_loss(z3, y):
     """Calculates the loss from the logits and the labels.
@@ -139,7 +147,7 @@ def create_mnist_model(epoch_num_start, epoch_num_end):
     # Building the graph
     x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
     y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-    z3, y_ = build_network(x, l1, l2, l3)
+    z3, y_, _ = build_network(x, l1, l2, l3)
     loss = calc_loss(z3, y)
     accuracy = evaluation(y, y_)
     train_op = training(loss, learning_rate)
@@ -168,7 +176,7 @@ def calculate_test_accuracy(epoch_num_start, epoch_num_end):
     # Building the graph
     x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
     y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-    z3, y_ = build_network(x, l1, l2, l3)
+    z3, y_, _ = build_network(x, l1, l2, l3)
     loss = calc_loss(z3, y)
     accuracy = evaluation(y, y_)
     train_op = training(loss, learning_rate)
@@ -194,7 +202,7 @@ def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end):
     # Building the graph
     x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
     y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
-    z3, y_ = build_network(x, l1, l2, l3)
+    z3, y_, _ = build_network(x, l1, l2, l3)
     loss = calc_loss(z3, y)
 
     epoch_nums = []
@@ -224,6 +232,46 @@ def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end):
     plt.ylabel('Loss')
     plt.show()
 
+def get_average_weights_from_epoch_num(epoch_num, params, layer_num):
+    sess=tf.Session()   
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver(max_to_keep=100)
+    saver.restore(sess, "./tmp/mnist_model_epochs-" + str(epoch_num))
+    params_nn = sess.run(params, feed_dict={})
+
+    #Return the spectral norm for one of the weight matrices
+    return np.linalg.norm(params_nn["w"+str(layer_num)], ord=2, axis=(0, 1))
+
+def demonstrate_epoch_number_vs_weights(epoch_num_start, epoch_num_end, layer_num):
+    """ Demonstrate the neural net's average weights vs epoch number
+    Args:
+        layer_num: the layer we want to show analysis for
+    """
+    sample_images = mnist.test.images
+    sample_labels = mnist.test.labels
+
+    epoch_nums = []
+    weights_average = []
+
+    # Building the graph
+    x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
+    y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
+    z3, y_, params_nn = build_network(x,l1, l2, l3)
+    loss = calc_loss(z3, y)
+
+    for epoch_num in range(epoch_num_start, epoch_num_end):
+        epoch_nums.append(epoch_num)
+        weights_for_epoch_num = get_average_weights_from_epoch_num(epoch_num, params_nn, layer_num)
+        weights_average.append(weights_for_epoch_num)
+
+        print("Epoch num: {0}, Spectral Norm on Weights for epoch number: {1}".format(epoch_num, weights_for_epoch_num))
+    plt.plot(epoch_nums, weights_average)
+    plt.title('MNIST Classifier Weights VS Epoch Numbers')
+    plt.xlabel('Epcoh Number')
+    plt.ylabel('Spectral Norm on Weights')
+    plt.show()
+
+demonstrate_epoch_number_vs_weights(5, 54, 3)
 #demonstrate_valid_train_loss(5, 52)
 #create_mnist_model(44, 51)
 #calculate_test_accuracy(28, 33)
