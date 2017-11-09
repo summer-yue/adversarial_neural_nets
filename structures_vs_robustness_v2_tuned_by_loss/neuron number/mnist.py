@@ -232,7 +232,7 @@ def get_average_weights_from_neuron_num(neuron_num, params, layer_num):
     params_nn = sess.run(params, feed_dict={})
 
     #Return the spectral norm for one of the weight matrices
-    return params_nn["w"+str(layer_num)].max()
+    return np.linalg.norm(params_nn["w"+str(layer_num)], ord=2, axis=(0, 1))
 
 def demonstrate_neuron_number_vs_weights(neuron_num_start, neuron_num_end, jump_num, layer_num):
     """ Demonstrate the neural net's average weights vs epoch number
@@ -256,11 +256,11 @@ def demonstrate_neuron_number_vs_weights(neuron_num_start, neuron_num_end, jump_
         weights_for_neuron_num = get_average_weights_from_neuron_num(neuron_num, params_nn, layer_num)
         weights_average.append(weights_for_neuron_num)
 
-        print("Neuron num: {0}, Weights on average for neuron number: {1}".format(neuron_num, weights_for_neuron_num))
+        print("Neuron num: {0},Spectral Norm on Weights for neuron number: {1}".format(neuron_num, weights_for_neuron_num))
     plt.plot(neuron_nums, weights_average)
     plt.title('MNIST Classifier Weights VS Neuron Numbers')
     plt.xlabel('Neuron Number')
-    plt.ylabel('Average Weights')
+    plt.ylabel('Spectral Norm on Weights')
     plt.show()
 
 #create_mnist_model(50, 550, 50)
