@@ -85,7 +85,7 @@ def training(loss, learning_rate):
     beta2=0.999
     epsilon=1e-08
  
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon)
+    optimizer = tf.train.AdamOptimizer(learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon)
     train_op = optimizer.minimize(loss)
     return train_op
 
@@ -267,4 +267,4 @@ def demonstrate_epoch_number_vs_weights(epoch_num_start, epoch_num_end, stride, 
 #create_mnist_model(0, 300, 25)
 #demonstrate_valid_train_loss(0, 300, 25)
 #calculate_test_accuracy(0, 300, 25)
-demonstrate_epoch_number_vs_weights(1, 276, 25, 3)
+#demonstrate_epoch_number_vs_weights(0, 300, 25, 3)

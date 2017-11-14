@@ -50,13 +50,13 @@ def demonstrate_attack_error_rate():
     How the value of epoch number changes the error rate on the test set
     When epsilon is fixed to 0.1
     """
-    sample_images = mnist.test.images
-    sample_labels = mnist.test.labels
+    sample_images = mnist.train.images
+    sample_labels = mnist.train.labels
 
     epoch_nums = []
     perturbed_accuracies = []
     normal_accuracies = []
-    for epoch_num in range(1, 276 + 1, 25):
+    for epoch_num in range(0, 300, 25):
         epoch_nums.append(epoch_num)
         perturbed_accuracy, normal_accuracy = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
         perturbed_accuracies.append(perturbed_accuracy)
