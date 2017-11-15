@@ -37,8 +37,8 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num):
 
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
-    saver = tf.train.Saver(max_to_keep=10)
-    saver.restore(sess, "./tmp2/mnist_model_epochs-" + str(epoch_num))
+    saver = tf.train.Saver(max_to_keep=100)
+    saver.restore(sess, "./tmp_sgd/mnist_model_epochs-" + str(epoch_num))
 
     perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
     perturbed_accuracy = sess.run(accuracy, feed_dict={x: perturbed_images, y: labels})
@@ -50,20 +50,20 @@ def demonstrate_attack_error_rate():
     How the value of epoch number changes the error rate on the test set
     When epsilon is fixed to 0.1
     """
-    sample_images = mnist.train.images
-    sample_labels = mnist.train.labels
+    sample_images = mnist.test.images
+    sample_labels = mnist.test.labels
 
     epoch_nums = []
     perturbed_accuracies = []
     normal_accuracies = []
-    for epoch_num in range(0, 300, 25):
+    for epoch_num in range(1, 300, 25):
         epoch_nums.append(epoch_num)
         perturbed_accuracy, normal_accuracy = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
         perturbed_accuracies.append(perturbed_accuracy)
         normal_accuracies.append(normal_accuracy)
         print("Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format(epoch_num, perturbed_accuracy, normal_accuracy))
     
-    with open("perturbed_and_normal_accuracies"+str(epsilon) + ".txt", "w") as text_file:
+    with open("sgd_txt/v3/perturbed_and_normal_accuracies"+str(epsilon) + ".txt", "w") as text_file:
         text_file.write(str(epoch_nums))
         text_file.write(str(normal_accuracies))
         text_file.write(str(perturbed_accuracies))
@@ -98,5 +98,26 @@ def graph_global_view():
     plt.ylabel('Accuracy')
     plt.show()
 
+def graph_global_view_sgd():
+    epoch_nums = [0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275]
+    perturbed_accuracies_01 = [0.85909998, 0.93529999, 0.93309999, 0.9321, 0.93279999, 0.9332, 0.93349999, 0.93370003, 0.93339998, 0.9339, 0.9339, 0.93419999]
+    perturbed_accuracies_05 = [0.33070001, 0.21160001, 0.2154, 0.2651, 0.2969, 0.32139999, 0.33450001, 0.34509999, 0.3545, 0.36269999, 0.36719999, 0.37290001]
+    perturbed_accuracies_10 = [0.0228, 0.022299999, 0.060199998, 0.07, 0.074199997, 0.0757, 0.077100001, 0.077200003, 0.075999998, 0.077500001, 0.077600002, 0.077100001]
+    perturbed_accuracies_20 = [0.0, 0.0026, 0.0052999998, 0.0046999999, 0.0049000001, 0.0048000002, 0.0043000001, 0.0038999999, 0.0044999998, 0.0046000001, 0.0048000002, 0.0043000001]
+    normal_accuracies = [0.91689998, 0.97839999, 0.97939998, 0.98079997, 0.98030001, 0.9806, 0.98079997, 0.98079997, 0.98100001, 0.98100001, 0.98070002, 0.98070002]
+    plt.plot(epoch_nums, perturbed_accuracies_01)
+    plt.plot(epoch_nums, perturbed_accuracies_05)
+    plt.plot(epoch_nums, perturbed_accuracies_10)
+    plt.plot(epoch_nums, perturbed_accuracies_20)
+    plt.plot(epoch_nums, normal_accuracies)
+    plt.title('FGSM Attack on MNIST Classifier With Various Epoch with SGD Optimizer')
+    plt.legend(['Pertubed Accuracy With Epsilon 0.01', 'Epsilon 0.05',
+        'Epsilon 0.1',
+        'Epsilon 0.2', 'Normal Accuracy'], loc='upper left')
+    plt.xlabel('Epoch Number')
+    plt.ylabel('Accuracy')
+    plt.show()
+
 #demonstrate_attack_error_rate()
-graph_global_view()
+#graph_global_view()
+graph_global_view_sgd()

@@ -20,7 +20,6 @@ tf.set_random_seed(0)
 mnist = mnist_data.read_data_sets('MNIST_data', one_hot=True)
 input_dimension = 784
 output_dimension = 10
-learning_rate = 0.001
 batch_size = 100
 l1 = 200
 l2 = 300
@@ -85,7 +84,7 @@ def training(loss, learning_rate):
     beta2=0.999
     epsilon=1e-08
  
-    optimizer = tf.train.AdamOptimizer(learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon)
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate)
     train_op = optimizer.minimize(loss)
     return train_op
 
@@ -131,7 +130,7 @@ def generate_mini_batches(batch_size, train_images, train_labels):
                train_labels[start_slice_index:end_slice_index])
 
 def create_mnist_model(epoch_num_start, epoch_num_end, stride):
-    """ Construct and train the neural net and save the model in /tmp2/original_mnist_model-8
+    """ Construct and train the neural net and save the model in /tmp_sgd/original_mnist_model-8
     """
     # Building the graph
     x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
@@ -139,6 +138,7 @@ def create_mnist_model(epoch_num_start, epoch_num_end, stride):
     z3, y_, _ = build_network(x, l1, l2, l3)
     loss = calc_loss(z3, y)
     accuracy = evaluation(y, y_)
+    learning_rate = tf.placeholder(tf.float32, shape=[])
     train_op = training(loss, learning_rate)
     saver = tf.train.Saver(max_to_keep=500)
     # Train MNIST classifer and evaluate the accuracy
@@ -150,15 +150,16 @@ def create_mnist_model(epoch_num_start, epoch_num_end, stride):
 
             for (batch_train_images, batch_train_labels) in\
                 generate_mini_batches(batch_size, shuffled_train_images, shuffled_train_labels):
-                    sess.run(train_op, feed_dict={x: batch_train_images, y: batch_train_labels}) 
+                    sess.run(train_op,
+                             feed_dict={x: batch_train_images, y: batch_train_labels, learning_rate: 0.05 / (epoch_num/100 + 1)}) 
             print("on epoch number:" + str(epoch_num))
             #Save and report the model every "stride" number of epochs
             if (epoch_num - epoch_num_start) % stride == 0:
-                loss_on_valid_set = sess.run(loss, feed_dict={x: mnist.validation.images, y: mnist.validation.labels})
-                loss_on_train_set = sess.run(loss, feed_dict={x: mnist.train.images, y: mnist.train.labels})
-                print("For epoch {0}, the total loss is {1}".format(epoch_num, loss_on_valid_set))
+                loss_on_valid_set = sess.run(loss, feed_dict={x: mnist.validation.images, y: mnist.validation.labels, learning_rate: 0.05 / (epoch_num/100 + 1)})
+                loss_on_train_set = sess.run(loss, feed_dict={x: mnist.train.images, y: mnist.train.labels, learning_rate: 0.05 / (epoch_num/100 + 1)})
+                print("For epoch {0}, the validation loss is {1}".format(epoch_num, loss_on_valid_set))
                 # Save the variables and model to disk.
-                save_path = saver.save(sess, './tmp2/mnist_model_epochs', global_step=epoch_num)
+                save_path = saver.save(sess, './tmp_sgd/mnist_model_epochs', global_step=epoch_num)
                 print("Model saved in file: %s" % save_path)
                 
 def calculate_test_accuracy(epoch_num_start, epoch_num_end, stride):
@@ -172,6 +173,7 @@ def calculate_test_accuracy(epoch_num_start, epoch_num_end, stride):
     z3, y_, _ = build_network(x, l1, l2, l3)
     loss = calc_loss(z3, y)
     accuracy = evaluation(y, y_)
+    learning_rate = tf.placeholder(tf.float32, shape=[])
     train_op = training(loss, learning_rate)
 
     sess=tf.Session()   
@@ -179,7 +181,7 @@ def calculate_test_accuracy(epoch_num_start, epoch_num_end, stride):
 
     saver = tf.train.Saver(max_to_keep=500)
     for epoch_num in range(epoch_num_start, epoch_num_end, stride):
-        saver.restore(sess, "./tmp2/mnist_model_epochs-" + str(epoch_num))
+        saver.restore(sess, "./tmp_sgd/mnist_model_epochs-" + str(epoch_num))
         # print("Model restored.")
 
         # Check the values of the variables
@@ -207,7 +209,7 @@ def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end, stride):
         sess=tf.Session()   
         sess.run(tf.global_variables_initializer())
         saver = tf.train.Saver(max_to_keep=500)
-        saver.restore(sess, "./tmp2/mnist_model_epochs-" + str(epoch_num))
+        saver.restore(sess, "./tmp_sgd/mnist_model_epochs-" + str(epoch_num))
 
         train_loss = sess.run(loss, feed_dict={x: mnist.train.images, y:mnist.train.labels})
         valid_loss = sess.run(loss, feed_dict={x: mnist.validation.images, y:mnist.validation.labels})
@@ -229,7 +231,7 @@ def get_average_weights_from_epoch_num(epoch_num, params, layer_num):
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver(max_to_keep=100)
-    saver.restore(sess, "./tmp2/mnist_model_epochs-" + str(epoch_num))
+    saver.restore(sess, "./tmp_sgd/mnist_model_epochs-" + str(epoch_num))
     params_nn = sess.run(params, feed_dict={})
 
     #Return the spectral norm for one of the weight matrices
@@ -264,7 +266,7 @@ def demonstrate_epoch_number_vs_weights(epoch_num_start, epoch_num_end, stride, 
     plt.ylabel('Spectral Norm on Weights')
     plt.show()
 
-#create_mnist_model(0, 300, 25)
-#demonstrate_valid_train_loss(0, 300, 25)
-#calculate_test_accuracy(0, 300, 25)
-#demonstrate_epoch_number_vs_weights(0, 300, 25, 3)
+#create_mnist_model(1, 600, 25)
+#demonstrate_valid_train_loss(1, 600, 25)
+#calculate_test_accuracy(1, 600, 25)
+#demonstrate_epoch_number_vs_weights(1, 600, 25, 3)
