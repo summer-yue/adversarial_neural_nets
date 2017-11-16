@@ -34,16 +34,17 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num):
     #apply pertubation to images
     pertubation = tf.sign(tf.gradients(loss, x))
     perturbed_op = tf.squeeze(epsilon * pertubation) + images
-
+  
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver(max_to_keep=100)
-    saver.restore(sess, "./tmp_sgd/mnist_model_epochs-" + str(epoch_num))
+    saver.restore(sess, "./tmp_adam1/mnist_model_epochs-" + str(epoch_num))
 
+    non_zero_elements_num_in_pertubation = np.count_nonzero(sess.run(pertubation, feed_dict={x: images, y: labels}))
     perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
     perturbed_accuracy = sess.run(accuracy, feed_dict={x: perturbed_images, y: labels})
     normal_accuracy = sess.run(accuracy, feed_dict={x: images, y: labels})
-    return perturbed_accuracy, normal_accuracy
+    return perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation
 
 def demonstrate_attack_error_rate():
     """ Demonstrate the FGSM attack result error rate vs epoch number by showing
@@ -56,17 +57,20 @@ def demonstrate_attack_error_rate():
     epoch_nums = []
     perturbed_accuracies = []
     normal_accuracies = []
+    zero_elements_num_in_pertubation_list = []
     for epoch_num in range(1, 300, 25):
         epoch_nums.append(epoch_num)
-        perturbed_accuracy, normal_accuracy = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
+
+        perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
+        zero_elements_num_in_pertubation_list.append(10000*784 - non_zero_elements_num_in_pertubation)
         perturbed_accuracies.append(perturbed_accuracy)
         normal_accuracies.append(normal_accuracy)
         print("Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format(epoch_num, perturbed_accuracy, normal_accuracy))
     
-    with open("sgd_txt/v3/perturbed_and_normal_accuracies"+str(epsilon) + ".txt", "w") as text_file:
-        text_file.write(str(epoch_nums))
-        text_file.write(str(normal_accuracies))
-        text_file.write(str(perturbed_accuracies))
+    # with open("sgd_txt/v3/perturbed_and_normal_accuracies"+str(epsilon) + ".txt", "w") as text_file:
+    #     text_file.write(str(epoch_nums))
+    #     text_file.write(str(normal_accuracies))
+    #     text_file.write(str(perturbed_accuracies))
 
     plt.plot(epoch_nums, perturbed_accuracies)
     plt.plot(epoch_nums, normal_accuracies)
@@ -74,6 +78,31 @@ def demonstrate_attack_error_rate():
     plt.legend(['Pertubed Accuracy', 'Normal Accuracy'], loc='upper left')
     plt.xlabel('Epoch Number')
     plt.ylabel('Accuracy')
+    plt.show()
+
+def demonstrate_zeros_in_perturbation():
+    """ Demonstrate FGSM attack's perturbation matrix contains how many 0s.
+    """
+    sample_images = mnist.test.images
+    sample_labels = mnist.test.labels
+
+    epoch_nums = []
+    perturbed_accuracies = []
+    normal_accuracies = []
+    zero_elements_num_in_pertubation_list = []
+    for epoch_num in range(1, 300, 25):
+        epoch_nums.append(epoch_num)
+
+        perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
+        zero_elements_num_in_pertubation_list.append(10000*784 - non_zero_elements_num_in_pertubation)
+        perturbed_accuracies.append(perturbed_accuracy)
+        normal_accuracies.append(normal_accuracy)
+        print("Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format(epoch_num, perturbed_accuracy, normal_accuracy))
+
+    plt.plot(epoch_nums, zero_elements_num_in_pertubation_list)
+    plt.title('FGSM Attack Perturbation Zero Element Number As Overfitting')
+    plt.xlabel('Epoch Number')
+    plt.ylabel('Number of zero values in Perturbation matrix')
     plt.show()
 
 def graph_global_view():
@@ -118,6 +147,7 @@ def graph_global_view_sgd():
     plt.ylabel('Accuracy')
     plt.show()
 
+demonstrate_zeros_in_perturbation()
 #demonstrate_attack_error_rate()
 #graph_global_view()
-graph_global_view_sgd()
+#graph_global_view_sgd()

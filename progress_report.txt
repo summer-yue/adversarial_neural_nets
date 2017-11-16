@@ -95,3 +95,7 @@ If this were the case, we should observe that the weights of the neural net beco
 11.6
 Reproduced the behavior: overfitting -> better accuracy by increasing neuron numbers.
 Work is included in strucutures_vs_robustness_v2_tuned_by_loss
+
+11.16
+Reproduced the behavior with SGD and generate global view for report. The same trend was observed
+We hypothesized that the reason in the increase in robustness is due to the diminishing gradients. It gets so small that with numeric precision, the perturbation becomes 0 at certain dimensions. We are observing the gradient to verify this hypothesis.
