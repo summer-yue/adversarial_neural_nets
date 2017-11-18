@@ -15,13 +15,13 @@ batch_size = 100
 l1 = 200
 l2 = 300
 l3 = 10
-epsilon = 0.2
+epsilon = 0.02
 
 tf.reset_default_graph()
 
 # Building the graph
-x = tf.placeholder(tf.float32, [None, input_dimension], name="input")
-y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
+x = tf.placeholder(tf.float64, [None, input_dimension], name="input")
+y = tf.placeholder(tf.float64, [None, output_dimension], name="labels")
 z3, y_, _ = build_network(x, l1, l2, l3)
 loss = calc_loss(z3, y)
 accuracy = evaluation(y, y_)
@@ -38,7 +38,7 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num):
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver(max_to_keep=100)
-    saver.restore(sess, "./tmp_adam1/mnist_model_epochs-" + str(epoch_num))
+    saver.restore(sess, "./tmp_adam2_high_precision/mnist_model_epochs-" + str(epoch_num))
 
     non_zero_elements_num_in_pertubation = np.count_nonzero(sess.run(pertubation, feed_dict={x: images, y: labels}))
     perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
@@ -147,7 +147,7 @@ def graph_global_view_sgd():
     plt.ylabel('Accuracy')
     plt.show()
 
-demonstrate_zeros_in_perturbation()
-#demonstrate_attack_error_rate()
+#demonstrate_zeros_in_perturbation()
+demonstrate_attack_error_rate()
 #graph_global_view()
 #graph_global_view_sgd()
