@@ -25,6 +25,45 @@ l1 = 200
 l2 = 300
 l3 = 10
 
+def build_network_32(x, l1_units, l2_units, l3_units):
+    """Build the MNIST model with 2 hidden layers and one linear layer.
+    params: 
+        x: input placeholder
+    Returns: 
+        Output tensor with the computed logits
+    """
+    
+    # Hidden 1
+    with tf.variable_scope("layer1"):
+        w1 = tf.get_variable("w",[input_dimension, l1_units], dtype = tf.float32, initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+        b1 = tf.get_variable("b", [l1_units], dtype = tf.float32, initializer = tf.zeros_initializer())
+        z1 = tf.matmul(x, w1) + b1
+        y1 = tf.nn.relu(z1)
+    
+    # Hidden 2
+    with tf.variable_scope("layer2"):
+        w2 = tf.get_variable("w",[l1_units, l2_units], dtype = tf.float32, initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+        b2 = tf.get_variable("b", [l2_units], dtype = tf.float32, initializer = tf.zeros_initializer())
+        z2 = tf.matmul(y1, w2) + b2
+        y2 = tf.nn.relu(z2)
+   
+    # softmax
+    with tf.variable_scope("layer3"):
+        w3 = tf.get_variable("w",[l2_units, l3_units], dtype = tf.float32, initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+        b3 = tf.get_variable("b", [l3_units], dtype = tf.float32, initializer = tf.zeros_initializer())
+        z3 = tf.matmul(y2, w3) + b3
+        y_ = tf.nn.softmax(z3)
+  
+    params = {}
+    params["w1"] = w1
+    params["w2"] = w2
+    params["w3"] = w3
+    params["b1"] = b1
+    params["b2"] = b2
+    params["b3"] = b3
+
+    return z3, y_, params # logits and probilities
+
 def build_network(x, l1_units, l2_units, l3_units):
     """Build the MNIST model with 2 hidden layers and one linear layer.
     params: 

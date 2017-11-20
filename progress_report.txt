@@ -99,3 +99,13 @@ Work is included in strucutures_vs_robustness_v2_tuned_by_loss
 11.16
 Reproduced the behavior with SGD and generate global view for report. The same trend was observed
 We hypothesized that the reason in the increase in robustness is due to the diminishing gradients. It gets so small that with numeric precision, the perturbation becomes 0 at certain dimensions. We are observing the gradient to verify this hypothesis.
+
+11.18
+Verify the hypothesis in 11.16. Turns out that many elements in the perturbation matrix becomes 0. That causes the accuracy to go up.
+When we decrease the number of zeros in the gradients, we observed that when we overfit the classifier, the perturbed accuracies go down. The classifier becomes less resistant to the attack. Which is what we hypothesized initially. It's interesting how numerical precision can mess up the results.
+
+11.20
+From 11.18, we noticed that the classifier trained with float64 has higher weights norm and are a lot less robust. (Achieves a less than 80% perturbed accuracy with a slight 0.01 perturbation) on a slightly overfitted classifier. We think it's caused by the 0 perturbation at certain places where gradients are shown to be 0. We wonder if it still persists on a not overfitted classifier.
+
+In addition, since higher precision weights generated a high value weights and non-robust classifier, it may be a valid defense algorithm to cap the precision of the weights.
+
