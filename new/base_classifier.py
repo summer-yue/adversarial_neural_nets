@@ -145,8 +145,8 @@ def create_mnist_model(epoch_num_start, epoch_num_end, stride, round_num):
     # Train MNIST classifer and evaluate the accuracy
     with tf.Session() as sess:
         # mini-batch training
-        sess.run(tf.global_variables_initializer())
         for r in range(round_num):
+            sess.run(tf.global_variables_initializer())
             print("on round number:" + str(r))
             for epoch_num in range(epoch_num_start, epoch_num_end):
                 shuffled_train_images, shuffled_train_labels = generate_shuffled_train_data()
@@ -214,7 +214,7 @@ def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end, stride, round_n
         sess=tf.Session()   
         sess.run(tf.global_variables_initializer())
         saver = tf.train.Saver(max_to_keep=500)
-        saver.restore(sess, "./models/overfitted" + str(round_num) + "/original_epoch-" + str(epoch_num))
+        saver.restore(sess, "./models/overfitted-" + str(round_num) + "/original_epoch-" + str(epoch_num))
 
         train_loss = sess.run(loss, feed_dict={x: mnist.train.images, y:mnist.train.labels})
         valid_loss = sess.run(loss, feed_dict={x: mnist.validation.images, y:mnist.validation.labels})
@@ -232,6 +232,6 @@ def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end, stride, round_n
     plt.ylabel('Loss')
     plt.show()
 
-create_mnist_model(1, 200, 20, 10)
-#demonstrate_valid_train_loss(1, 200, 20, 10)
+create_mnist_model(1, 200, 20, 5)
+#demonstrate_valid_train_loss(1, 200, 20, 2)
 #calculate_test_accuracy(4)

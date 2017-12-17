@@ -27,7 +27,7 @@ z3, y_, _ = build_network(x, l1, l2, l3)
 loss = calc_loss(z3, y)
 accuracy = evaluation(y, y_)
 
-def accuracy_after_fgsm_attack(images, labels, epoch_num):
+def accuracy_after_fgsm_attack(images, labels, epoch_num, round_number):
     """ Perform fast gradient sign method attack on a list of (image, label) pair to lead mnist classifier to misclassify
     return: new accuracy after perturbation
     """
@@ -38,7 +38,7 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num):
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver(max_to_keep=100)
-    saver.restore(sess, "./models/original/original_epoch-" + str(epoch_num))
+    saver.restore(sess, "./models/original-" + str(round_number) + "/original_epoch-" + str(epoch_num))
 
     non_zero_elements_num_in_pertubation = np.count_nonzero(sess.run(pertubation, feed_dict={x: images, y: labels}))
     perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
@@ -47,26 +47,34 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num):
     normal_accuracy = sess.run(accuracy, feed_dict={x: images, y: labels})
     return perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation
 
-def demonstrate_attack_error_rate():
+def demonstrate_attack_error_rate(epoch_num_start, epoch_num_end, stride, total_round_num):
     """ Demonstrate the FGSM attack result error rate vs epoch number by showing
     How the value of epoch number changes the error rate on the test set
     When epsilon is fixed to 0.1
+    Args:
+        epoch_num_start: start recording models from this epoch
+        epcoh_num_end: stop training at this epoch number
+        stride: number of epochs between two adjacentmodels
+        total_round_num: number of experiments used to average results
     """
     sample_images = mnist.test.images
-    sample_labels = mnist.test.labels
+    sample_labels = mnist.test.labels 
 
     epoch_nums = []
     perturbed_accuracies = []
     normal_accuracies = []
-    zero_elements_num_in_pertubation_list = []
-    for epoch_num in range(1, 200, 20):
-        epoch_nums.append(epoch_num)
 
-        perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
-        zero_elements_num_in_pertubation_list.append(10000*784 - non_zero_elements_num_in_pertubation)
-        perturbed_accuracies.append(perturbed_accuracy)
-    
-        normal_accuracies.append(normal_accuracy)
+    total_perturbed_accuracy = 0
+    total_normal_accuracy = 0
+    for epoch_num in range(epoch_num_start, epoch_num_end, stride):
+        epoch_nums.append(epoch_num)
+        for round_number in range(total_round_number):
+            perturbed_accuracy, normal_accuracy, _ = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num, round_number)
+            total_perturbed_accuracy += perturbed_accuracy
+            total_normal_accuracy += normal_accuracy
+        perturbed_accuracies.append(average_perturbed_accuracy * 1.0 / total_round_number)
+        normal_accuracies.append(total_normal_accuracy * 1.0 / total_round_number)
+
         print("Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format(epoch_num, perturbed_accuracy, normal_accuracy))
 
     plt.plot(epoch_nums, perturbed_accuracies)
@@ -77,7 +85,7 @@ def demonstrate_attack_error_rate():
     plt.ylabel('Accuracy')
     plt.show()
 
-def demonstrate_zeros_in_perturbation():
+def demonstrate_zeros_in_perturbation(epoch_num_start, epoch_num_end, stride):
     """ Demonstrate FGSM attack's perturbation matrix contains how many 0s.
     """
     sample_images = mnist.test.images
@@ -87,10 +95,10 @@ def demonstrate_zeros_in_perturbation():
     perturbed_accuracies = []
     normal_accuracies = []
     zero_elements_num_in_pertubation_list = []
-    for epoch_num in range(1, 200, 20):
+    for epoch_num in range(epoch_num_start, epoch_num_end, stride):
         epoch_nums.append(epoch_num)
 
-        perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
+        perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num, round_number)
         zero_elements_num_in_pertubation_list.append(10000*784 - non_zero_elements_num_in_pertubation)
         perturbed_accuracies.append(perturbed_accuracy)
         normal_accuracies.append(normal_accuracy)
@@ -102,5 +110,5 @@ def demonstrate_zeros_in_perturbation():
     plt.ylabel('Number of zero values in Perturbation matrix')
     plt.show()
 
-demonstrate_attack_error_rate()
+demonstrate_attack_error_rate(1, 200, 20, 5)
 #demonstrate_zeros_in_perturbation()
