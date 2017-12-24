@@ -128,7 +128,7 @@ def create_mnist_model(epoch_num_start, epoch_num_end, stride, round_num):
     """ Construct and train the neural net and save the models in /models/overfitted-(round_num)/original_epoch-(epoch_number)
     Args:
         epoch_num_start: start recording models from this epoch
-        epcoh_num_end: stop training at this epoch number
+        epoch_num_end: stop training at this epoch number
         stride: number of epochs between two adjacentmodels
         round: number of experiments used to average results
     """
@@ -166,10 +166,13 @@ def create_mnist_model(epoch_num_start, epoch_num_end, stride, round_num):
                     save_path = saver.save(sess, './models/overfitted-' + str(r) + '/original_epoch', global_step=epoch_num)
                     print("Model saved in file: %s" % save_path)
                 
-def calculate_test_accuracy(epoch_num):
+def calculate_test_accuracy(epoch_num_start, epoch_num_end, stride, round_num):
     """ Restore the saved models and calculate their test accuracy
     Args:
-        epoch_num: epoch number
+        epoch_num_start: start recording models from this epoch
+        epoch_num_end: stop training at this epoch number
+        stride: number of epochs between two adjacentmodels
+        round: number of experiments used to average results
     """
     tf.reset_default_graph()
     # Building the graph
@@ -185,19 +188,26 @@ def calculate_test_accuracy(epoch_num):
     sess.run(tf.global_variables_initializer())
 
     saver = tf.train.Saver(max_to_keep=500)
-    saver.restore(sess, "./models/overfitted1/original_epoch-" + str(epoch_num))
-    print("Model restored.")
 
-    # Check the values of the variables
-    print("For epoch:" + str(epoch_num))
-    train_accuracy = sess.run(accuracy, feed_dict={x: mnist.train.images, y: mnist.train.labels})
-    print("Train accuracy is:" + str(train_accuracy))
-    test_accuracy = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
-    print("Test accuracy is:" + str(test_accuracy))
+    for epoch_num in range(epoch_num_start, epoch_num_end, stride):
+        saver.restore(sess, "./models/overfitted-" + str(round_num) + "/original_epoch-" + str(epoch_num))
+        print("Model " + str(round_num) + "." + str(epoch_num) + " restored.")
+
+        # Check the values of the variables
+        print("For epoch:" + str(epoch_num))
+        train_accuracy = sess.run(accuracy, feed_dict={x: mnist.train.images, y: mnist.train.labels})
+        print("Train accuracy is:" + str(train_accuracy))
+        test_accuracy = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
+        print("Test accuracy is:" + str(test_accuracy))
 
 # This function was used for epoch number tuning
 def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end, stride, round_num):
     """Demonstrate the change in validation loss and train loss as more epochs are trained
+    Args:
+        epoch_num_start: start recording models from this epoch
+        epcoh_num_end: stop training at this epoch number
+        stride: number of epochs between two adjacentmodels
+        round: number of experiments used to average results
     """
     # Building the graph
     x = tf.placeholder(tf.float64, [None, input_dimension], name="input")
@@ -232,6 +242,6 @@ def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end, stride, round_n
     plt.ylabel('Loss')
     plt.show()
 
-create_mnist_model(1, 200, 20, 5)
-#demonstrate_valid_train_loss(1, 200, 20, 2)
-#calculate_test_accuracy(4)
+#create_mnist_model(1, 200, 20, 5)
+#demonstrate_valid_train_loss(1, 200, 20, 0) # See results saved in averaged_results/train_valid_loss
+calculate_test_accuracy(1, 200, 20, 4)
