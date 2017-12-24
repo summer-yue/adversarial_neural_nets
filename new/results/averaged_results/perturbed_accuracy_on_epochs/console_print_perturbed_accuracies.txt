@@ -1,0 +1,30 @@
+Epoch num: 101, Round num: 0, perturbed accuracy: 0.5868, normal accuracy: 0.9813 
+Epoch num: 101, Round num: 1, perturbed accuracy: 0.5817, normal accuracy: 0.9828 
+Epoch num: 101, Round num: 2, perturbed accuracy: 0.6042, normal accuracy: 0.9814 
+Epoch num: 101, Round num: 3, perturbed accuracy: 0.623, normal accuracy: 0.9802 
+Epoch num: 101, Round num: 4, perturbed accuracy: 0.5945, normal accuracy: 0.9829 
+Average Summary Epoch num: 101, perturbed accuracy: 0.5980399999999999, normal accuracy: 0.9817199999999999 
+Epoch num: 121, Round num: 0, perturbed accuracy: 0.5776, normal accuracy: 0.9816 
+Epoch num: 121, Round num: 1, perturbed accuracy: 0.5875, normal accuracy: 0.9815 
+Epoch num: 121, Round num: 2, perturbed accuracy: 0.564, normal accuracy: 0.9791 
+Epoch num: 121, Round num: 3, perturbed accuracy: 0.5885, normal accuracy: 0.9805 
+Epoch num: 121, Round num: 4, perturbed accuracy: 0.621, normal accuracy: 0.9808 
+Average Summary Epoch num: 121, perturbed accuracy: 0.5877199999999999, normal accuracy: 0.9807 
+Epoch num: 141, Round num: 0, perturbed accuracy: 0.6158, normal accuracy: 0.9806 
+Epoch num: 141, Round num: 1, perturbed accuracy: 0.566, normal accuracy: 0.9826 
+Epoch num: 141, Round num: 2, perturbed accuracy: 0.5724, normal accuracy: 0.9824 
+Epoch num: 141, Round num: 3, perturbed accuracy: 0.6154, normal accuracy: 0.9809 
+Epoch num: 141, Round num: 4, perturbed accuracy: 0.5866, normal accuracy: 0.9796 
+Average Summary Epoch num: 141, perturbed accuracy: 0.59124, normal accuracy: 0.9812200000000001 
+Epoch num: 161, Round num: 0, perturbed accuracy: 0.6337, normal accuracy: 0.9802 
+Epoch num: 161, Round num: 1, perturbed accuracy: 0.5935, normal accuracy: 0.9802 
+Epoch num: 161, Round num: 2, perturbed accuracy: 0.6033, normal accuracy: 0.9826 
+Epoch num: 161, Round num: 3, perturbed accuracy: 0.5937, normal accuracy: 0.9828 
+Epoch num: 161, Round num: 4, perturbed accuracy: 0.6015, normal accuracy: 0.9795 
+Average Summary Epoch num: 161, perturbed accuracy: 0.60514, normal accuracy: 0.98106 
+Epoch num: 181, Round num: 0, perturbed accuracy: 0.5475, normal accuracy: 0.9797 
+Epoch num: 181, Round num: 1, perturbed accuracy: 0.6345, normal accuracy: 0.9827 
+Epoch num: 181, Round num: 2, perturbed accuracy: 0.6056, normal accuracy: 0.982 
+Epoch num: 181, Round num: 3, perturbed accuracy: 0.6344, normal accuracy: 0.9812 
+Epoch num: 181, Round num: 4, perturbed accuracy: 0.5949, normal accuracy: 0.9825 
+Average Summary Epoch num: 181, perturbed accuracy: 0.6033799999999999, normal accuracy: 0.98162 

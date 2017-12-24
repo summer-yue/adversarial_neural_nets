@@ -5,19 +5,6 @@ import matplotlib.pyplot as plt
 from base_classifier import build_network, calc_loss, evaluation
 from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 
-# Average perturbed accuracy is going up. 
-# Next: Try overfitting more so normal accuracy doesn't go up.
-# Epoch num: 1, perturbed accuracy: 0.3143, normal accuracy: 0.9541 
-# Epoch num: 21, perturbed accuracy: 0.2626, normal accuracy: 0.9768 
-# Epoch num: 41, perturbed accuracy: 0.354, normal accuracy: 0.9789 
-# Epoch num: 61, perturbed accuracy: 0.4321, normal accuracy: 0.9816 
-# Epoch num: 81, perturbed accuracy: 0.4955, normal accuracy: 0.9818 
-# Epoch num: 101, perturbed accuracy: 0.5159, normal accuracy: 0.9829 
-# Epoch num: 121, perturbed accuracy: 0.5196, normal accuracy: 0.983 
-# Epoch num: 141, perturbed accuracy: 0.5262, normal accuracy: 0.9836 
-# Epoch num: 161, perturbed accuracy: 0.5267, normal accuracy: 0.9844 
-# Epoch num: 181, perturbed accuracy: 0.5273, normal accuracy: 0.9844 
-
 # Importing MNIST datasets
 mnist = mnist_data.read_data_sets('MNIST_data', one_hot=True)
 
@@ -78,20 +65,29 @@ def demonstrate_attack_error_rate(epoch_num_start, epoch_num_end, stride, total_
     perturbed_accuracies = []
     normal_accuracies = []
 
-    total_perturbed_accuracy = 0
-    total_normal_accuracy = 0
-
     for epoch_num in range(epoch_num_start, epoch_num_end, stride):
         epoch_nums.append(epoch_num)
+        total_perturbed_accuracy = 0
+        total_normal_accuracy = 0
+
         for round_number in range(total_round_num):
             perturbed_accuracy, normal_accuracy, _ = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num, round_number)
+            print("Epoch num: {0}, Round num: {1}, perturbed accuracy: {2}, normal accuracy: {3} ".format
+                (epoch_num, round_number, perturbed_accuracy, normal_accuracy))
+
             total_perturbed_accuracy += perturbed_accuracy
             total_normal_accuracy += normal_accuracy
+
         perturbed_accuracies.append(total_perturbed_accuracy * 1.0 / total_round_num)
         normal_accuracies.append(total_normal_accuracy * 1.0 / total_round_num)
-
-        print("Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format(epoch_num, perturbed_accuracy, normal_accuracy))
-
+        print("Average Summary Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format
+            (
+                epoch_num,
+                total_perturbed_accuracy * 1.0 / total_round_num,
+                total_normal_accuracy * 1.0 / total_round_num
+            )
+        )
+        
     plt.plot(epoch_nums, perturbed_accuracies)
     plt.plot(epoch_nums, normal_accuracies)
     plt.title('FGSM Attack on MNIST Classifier With Various Epoch')
@@ -110,16 +106,6 @@ def demonstrate_zeros_in_perturbation(epoch_num_start, epoch_num_end, stride, to
     zero_elements_num_in_pertubation_list = []
 
     for epoch_num in range(epoch_num_start, epoch_num_end, stride):
-
-        tf.reset_default_graph()
-
-        # Building the graph
-        x = tf.placeholder(tf.float64, [None, input_dimension], name="input")
-        y = tf.placeholder(tf.float64, [None, output_dimension], name="labels")
-        z3, y_, _ = build_network(x, l1, l2, l3)
-        loss = calc_loss(z3, y)
-        accuracy = evaluation(y, y_)
-
         zero_elements_num_in_pertubation = 0
         epoch_nums.append(epoch_num)
         for round_number in range(total_round_num):
@@ -137,5 +123,5 @@ def demonstrate_zeros_in_perturbation(epoch_num_start, epoch_num_end, stride, to
     plt.ylabel('Number of zero values in Perturbation matrix')
     plt.show()
 
-demonstrate_attack_error_rate(101, 200, 20, 5)
-#demonstrate_zeros_in_perturbation()
+#demonstrate_attack_error_rate(101, 200, 20, 5)
+demonstrate_zeros_in_perturbation(101, 200, 20, 5)

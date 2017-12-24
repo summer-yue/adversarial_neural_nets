@@ -154,13 +154,13 @@ def create_mnist_model(epoch_num_start, epoch_num_end, stride, round_num):
                 for (batch_train_images, batch_train_labels) in\
                     generate_mini_batches(batch_size, shuffled_train_images, shuffled_train_labels):
                         sess.run(train_op,
-                                 feed_dict={x: batch_train_images, y: batch_train_labels, learning_rate: 0.001}) 
+                                 feed_dict={x: batch_train_images, y: batch_train_labels, learning_rate: 0.002}) 
                 print("on epoch number:" + str(epoch_num))
 
                 #Save and report the model every "stride" number of epochs
                 if (epoch_num - epoch_num_start) % stride == 0:
-                    loss_on_valid_set = sess.run(loss, feed_dict={x: mnist.validation.images, y: mnist.validation.labels, learning_rate: 0.001})
-                    loss_on_train_set = sess.run(loss, feed_dict={x: mnist.train.images, y: mnist.train.labels, learning_rate: 0.001})
+                    loss_on_valid_set = sess.run(loss, feed_dict={x: mnist.validation.images, y: mnist.validation.labels, learning_rate: 0.002})
+                    loss_on_train_set = sess.run(loss, feed_dict={x: mnist.train.images, y: mnist.train.labels, learning_rate: 0.002})
                     print("For epoch {0}, the validation loss is {1}".format(epoch_num, loss_on_valid_set))
                     # Save the variables and model to disk.
                     save_path = saver.save(sess, './models/overfitted-' + str(r) + '/original_epoch', global_step=epoch_num)
@@ -243,5 +243,5 @@ def demonstrate_valid_train_loss(epoch_num_start, epoch_num_end, stride, round_n
     plt.show()
 
 #create_mnist_model(1, 200, 20, 5)
-#demonstrate_valid_train_loss(1, 200, 20, 0) # See results saved in averaged_results/train_valid_loss
-calculate_test_accuracy(1, 200, 20, 4)
+#demonstrate_valid_train_loss(1, 200, 20, 4) # See results saved in averaged_results/train_valid_loss
+#calculate_test_accuracy(1, 200, 20, 4)
