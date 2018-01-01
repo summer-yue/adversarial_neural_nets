@@ -38,7 +38,7 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num):
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver(max_to_keep=10)
-    saver.restore(sess, "./tmp/mnist_model_epochs-" + str(epoch_num))
+    saver.restore(sess, "./tmp_adam1/mnist_model_epochs-" + str(epoch_num))
 
     perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
     perturbed_accuracy = sess.run(accuracy, feed_dict={x: perturbed_images, y: labels})

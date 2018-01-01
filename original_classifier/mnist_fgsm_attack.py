@@ -15,6 +15,7 @@ batch_size = 100
 l1 = 200
 l2 = 300
 l3 = 10
+epsilon = 0.1
 
 def fgsm_attack(image, label):
     """ Perform fast gradient sign method attack on an (image, label) pair to lead mnist classifier to misclassify
@@ -28,8 +29,6 @@ def fgsm_attack(image, label):
     y = tf.placeholder(tf.float32, [None, output_dimension], name="labels")
     z3, y_ = build_network(x, l1, l2, l3)
     loss = calc_loss(z3, y)
-
-    epsilon = 0.1
 
     pertubation = tf.sign(tf.gradients(loss, x))
 
@@ -107,7 +106,7 @@ def demonstrate_attack_result():
     perturbed_image = fgsm_attack(sample_image, sample_label)
 
     plt.imshow(perturbed_image.reshape(28, 28))
-    plt.title('Perturbed Image')
+    plt.title('Perturbed Image With Epsilon = ' + str(epsilon))
     plt.show()
     perturbed_prediction = np.argmax(predict_mnist_num(perturbed_image), axis=1)
     print("The perturbed picture's prediction says:" + str(perturbed_prediction))
@@ -131,5 +130,5 @@ def demonstrate_attack_error_rate():
     plt.ylabel('Accuracy')
     plt.show()
 
-# demonstrate_attack_result()
+#demonstrate_attack_result()
 demonstrate_attack_error_rate()

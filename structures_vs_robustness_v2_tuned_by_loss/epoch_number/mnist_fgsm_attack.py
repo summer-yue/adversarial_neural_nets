@@ -15,7 +15,7 @@ batch_size = 100
 l1 = 200
 l2 = 300
 l3 = 10
-epsilon = 0.02
+epsilon = 0.05
 
 tf.reset_default_graph()
 
@@ -34,17 +34,37 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num):
     #apply pertubation to images
     pertubation = tf.sign(tf.gradients(loss, x))
     perturbed_op = tf.squeeze(epsilon * pertubation) + images
-  
+
+    # tmp_condition = tf.equal(pertubation, tf.zeros(tf.shape(pertubation)))
+    # rand_pos_neg = tf.where(
+    #     tf.random_uniform(
+    #         tf.shape(pertubation),
+    #         minval=0,
+    #         maxval=1,
+    #         dtype=tf.float64,
+    #     ) > tf.ones(tf.shape(pertubation)) / 2,
+    #     tf.ones(tf.shape(pertubation)),
+    #     -1 * tf.ones(tf.shape(pertubation))
+    # )
+    # rand_pertubation = tf.where(tmp_condition,
+    #     tf.ones(tf.shape(pertubation)),
+    #     pertubation)
+    # rand_perturbed_op = tf.squeeze(epsilon * rand_pertubation) + images
+
     sess=tf.Session()   
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver(max_to_keep=100)
-    saver.restore(sess, "./tmp_adam2_high_precision/mnist_model_epochs-" + str(epoch_num))
+    saver.restore(sess, "./tmp_adam3_float64/mnist_model_epochs-" + str(epoch_num))
 
     non_zero_elements_num_in_pertubation = np.count_nonzero(sess.run(pertubation, feed_dict={x: images, y: labels}))
     perturbed_images = sess.run(perturbed_op, feed_dict={x: images, y:labels})
+    # rand_perturbed_images = sess.run(rand_perturbed_op, feed_dict={x: images, y:labels})
+    
     perturbed_accuracy = sess.run(accuracy, feed_dict={x: perturbed_images, y: labels})
+    # rand_perturbed_accuracy = sess.run(accuracy, feed_dict={x: rand_perturbed_images, y: labels})
     normal_accuracy = sess.run(accuracy, feed_dict={x: images, y: labels})
-    return perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation
+    # return perturbed_accuracy, rand_perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation
+    return perturbed_accuracy, 0, normal_accuracy, non_zero_elements_num_in_pertubation
 
 def demonstrate_attack_error_rate():
     """ Demonstrate the FGSM attack result error rate vs epoch number by showing
@@ -56,25 +76,27 @@ def demonstrate_attack_error_rate():
 
     epoch_nums = []
     perturbed_accuracies = []
+    rand_perturbed_accuracies = []
     normal_accuracies = []
     zero_elements_num_in_pertubation_list = []
     for epoch_num in range(1, 300, 25):
         epoch_nums.append(epoch_num)
 
-        perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
+        perturbed_accuracy, rand_perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
         zero_elements_num_in_pertubation_list.append(10000*784 - non_zero_elements_num_in_pertubation)
         perturbed_accuracies.append(perturbed_accuracy)
+        rand_perturbed_accuracies.append(rand_perturbed_accuracy)
         normal_accuracies.append(normal_accuracy)
         print("Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format(epoch_num, perturbed_accuracy, normal_accuracy))
     
-    # with open("sgd_txt/v3/perturbed_and_normal_accuracies"+str(epsilon) + ".txt", "w") as text_file:
+    # with open("final_64/perturbed_and_normal_accuracies"+str(epsilon) + ".txt", "w") as text_file:
     #     text_file.write(str(epoch_nums))
     #     text_file.write(str(normal_accuracies))
     #     text_file.write(str(perturbed_accuracies))
 
     plt.plot(epoch_nums, perturbed_accuracies)
     plt.plot(epoch_nums, normal_accuracies)
-    plt.title('FGSM Attack on MNIST Classifier With Various Epoch')
+    plt.title('FGSM Attack on MNIST Classifier With Various Epoch with Epsilon = ' + str(epsilon))
     plt.legend(['Pertubed Accuracy', 'Normal Accuracy'], loc='upper left')
     plt.xlabel('Epoch Number')
     plt.ylabel('Accuracy')
@@ -93,36 +115,31 @@ def demonstrate_zeros_in_perturbation():
     for epoch_num in range(1, 300, 25):
         epoch_nums.append(epoch_num)
 
-        perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
+        perturbed_accuracy, _, normal_accuracy, non_zero_elements_num_in_pertubation = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num)
         zero_elements_num_in_pertubation_list.append(10000*784 - non_zero_elements_num_in_pertubation)
         perturbed_accuracies.append(perturbed_accuracy)
         normal_accuracies.append(normal_accuracy)
         print("Epoch num: {0}, perturbed accuracy: {1}, normal accuracy: {2} ".format(epoch_num, perturbed_accuracy, normal_accuracy))
 
     plt.plot(epoch_nums, zero_elements_num_in_pertubation_list)
-    plt.title('FGSM Attack Perturbation Zero Element Number As Overfitting')
+    plt.title('FGSM Attack Perturbation Zero Element Number As Overfitting Epsilon = ' + str(epsilon))
     plt.xlabel('Epoch Number')
     plt.ylabel('Number of zero values in Perturbation matrix')
     plt.show()
 
 def graph_global_view():
     epoch_nums = [0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275]
-    perturbed_accuracies_01 = [0.92023635, 0.95392728, 0.96780002, 0.97327274, 0.99209088, 0.99816364, 0.99787271, 0.98989093, 0.9964, 0.98103637, 0.9848727, 0.98145455]
-    perturbed_accuracies_05 = [0.3126182, 0.44250908, 0.54401821, 0.4479818, 0.48654544, 0.47703636, 0.46900001, 0.47299999, 0.48983636, 0.48398182, 0.50870907, 0.49821818]
-    perturbed_accuracies_10 = [0.032109089, 0.15150909, 0.1686909, 0.15456364, 0.17196363, 0.21296364, 0.22258182, 0.18930909, 0.2658, 0.25341818, 0.31563637, 0.36585453]
-    perturbed_accuracies_15 = [0.0035636364, 0.068509094, 0.065272726, 0.092454545, 0.10812727, 0.17423636, 0.19859999, 0.14816363, 0.24007273, 0.22579999, 0.29923636, 0.35349092]
-    perturbed_accuracies_20 = [0.00058181817, 0.040381819, 0.03089091, 0.074836366, 0.089199997, 0.1648, 0.19347273, 0.13829091, 0.23418182, 0.22045454, 0.2955091, 0.35001817]
-    normal_accuracies = [0.9683091, 0.99672729, 0.9975273, 0.99929088, 1.0, 1.0, 1.0, 1.0, 1.0, 0.99958181, 0.99969089, 0.99930906]
+    perturbed_accuracies_01 = [0.7802, 0.72770000000000001, 0.70069999999999999, 0.65129999999999999, 0.64129999999999998, 0.59650000000000003, 0.56189999999999996, 0.52510000000000001, 0.52329999999999999, 0.53220000000000001, 0.48980000000000001, 0.49380000000000002]
+    perturbed_accuracies_02 = [0.60929999999999995, 0.43190000000000001, 0.4103, 0.32979999999999998, 0.3281, 0.30170000000000002, 0.2873, 0.26400000000000001, 0.26429999999999998, 0.25330000000000003, 0.24079999999999999, 0.25169999999999998]
+    perturbed_accuracies_05 = [0.18340000000000001, 0.14460000000000001, 0.21809999999999999, 0.18240000000000001, 0.21279999999999999, 0.21049999999999999, 0.20880000000000001, 0.21829999999999999, 0.20710000000000001, 0.21099999999999999, 0.2097, 0.20979999999999999]
+  
     plt.plot(epoch_nums, perturbed_accuracies_01)
+    plt.plot(epoch_nums, perturbed_accuracies_02)
     plt.plot(epoch_nums, perturbed_accuracies_05)
-    plt.plot(epoch_nums, perturbed_accuracies_10)
-    plt.plot(epoch_nums, perturbed_accuracies_15)
-    plt.plot(epoch_nums, perturbed_accuracies_20)
-    plt.plot(epoch_nums, normal_accuracies)
+
     plt.title('FGSM Attack on MNIST Classifier With Various Epoch')
-    plt.legend(['Pertubed Accuracy With Epsilon 0.01', 'Epsilon 0.05',
-        'Epsilon 0.1', 'Epsilon 0.15',
-        'Epsilon 0.2', 'Normal Accuracy'], loc='upper left')
+    plt.legend(['Pertubed Accuracy With Epsilon 0.01', 'Epsilon 0.02',
+        'Epsilon 0.05'], loc='upper left')
     plt.xlabel('Epoch Number')
     plt.ylabel('Accuracy')
     plt.show()
@@ -147,7 +164,8 @@ def graph_global_view_sgd():
     plt.ylabel('Accuracy')
     plt.show()
 
-#demonstrate_zeros_in_perturbation()
+#demonstrate_attack_result()
 demonstrate_attack_error_rate()
+#demonstrate_zeros_in_perturbation()
 #graph_global_view()
 #graph_global_view_sgd()

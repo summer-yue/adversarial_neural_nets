@@ -16,7 +16,7 @@ batch_size = 100
 l1 = 200
 l2 = 300
 l3 = 10
-epsilon = 0.05
+epsilon = 0.02
 
 tf.reset_default_graph()
 
@@ -46,6 +46,42 @@ def accuracy_after_fgsm_attack(images, labels, epoch_num, round_number):
     perturbed_accuracy = sess.run(accuracy, feed_dict={x: perturbed_images, y: labels})   
     normal_accuracy = sess.run(accuracy, feed_dict={x: images, y: labels})
     return perturbed_accuracy, normal_accuracy, non_zero_elements_num_in_pertubation
+
+def demonstrate_one_round_attack_error_rate(epoch_num_start, epoch_num_end, stride, round_number):
+    """ Demonstrate the FGSM attack result error rate vs epoch number by showing
+    How the value of epoch number changes the error rate on the test set
+    When epsilon is fixed to 0.1
+    We take the results from  "round_number"th experiemnts saved in /models/overfitted-
+    Args:
+        epoch_num_start: start recording models from this epoch
+        epcoh_num_end: stop training at this epoch number
+        stride: number of epochs between two adjacentmodels
+        round_number: the round number we are looking at to display the results
+    """
+    sample_images = mnist.test.images
+    sample_labels = mnist.test.labels 
+
+    epoch_nums = []
+    perturbed_accuracies = []
+    normal_accuracies = []
+
+    for epoch_num in range(epoch_num_start, epoch_num_end, stride):
+        epoch_nums.append(epoch_num)
+
+        perturbed_accuracy, normal_accuracy, _ = accuracy_after_fgsm_attack(sample_images, sample_labels, epoch_num, round_number)
+        print("Epoch num: {0}, Round num: {1}, perturbed accuracy: {2}, normal accuracy: {3} ".format
+            (epoch_num, round_number, perturbed_accuracy, normal_accuracy))
+
+        perturbed_accuracies.append(perturbed_accuracy)
+        normal_accuracies.append(normal_accuracy)
+ 
+    plt.plot(epoch_nums, perturbed_accuracies)
+    plt.plot(epoch_nums, normal_accuracies)
+    plt.title('FGSM Attack on MNIST Classifier With Epsilon ' + str(epsilon))
+    plt.legend(['Pertubed Accuracy', 'Normal Accuracy'], loc='upper left')
+    plt.xlabel('Epoch Number')
+    plt.ylabel('Accuracy')
+    plt.show()
 
 def demonstrate_attack_error_rate(epoch_num_start, epoch_num_end, stride, total_round_num):
     """ Demonstrate the FGSM attack result error rate vs epoch number by showing
@@ -90,7 +126,7 @@ def demonstrate_attack_error_rate(epoch_num_start, epoch_num_end, stride, total_
         
     plt.plot(epoch_nums, perturbed_accuracies)
     plt.plot(epoch_nums, normal_accuracies)
-    plt.title('FGSM Attack on MNIST Classifier With Various Epoch')
+    plt.title('FGSM Attack on MNIST Classifier With Epsilon ' + str(epsilon))
     plt.legend(['Pertubed Accuracy', 'Normal Accuracy'], loc='upper left')
     plt.xlabel('Epoch Number')
     plt.ylabel('Accuracy')
@@ -123,5 +159,6 @@ def demonstrate_zeros_in_perturbation(epoch_num_start, epoch_num_end, stride, to
     plt.ylabel('Number of zero values in Perturbation matrix')
     plt.show()
 
-#demonstrate_attack_error_rate(101, 200, 20, 5)
-demonstrate_zeros_in_perturbation(101, 200, 20, 5)
+#demonstrate_one_round_attack_error_rate(101, 200, 20, 4)
+demonstrate_attack_error_rate(101, 200, 20, 5)
+# demonstrate_zeros_in_perturbation(101, 200, 20, 5)
